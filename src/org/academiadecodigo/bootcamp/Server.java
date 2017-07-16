@@ -17,7 +17,6 @@ public class Server {
 
     public void start() throws IOException {
 
-        while(true) {
             welcomeMessage = "Welcome to Rock,Paper, Scissors multiplayer game \n " +
                     "This game is brough to you by Team DesperateWithACause";
             System.out.println(welcomeMessage);
@@ -34,18 +33,24 @@ public class Server {
                 Socket client2 = serverSocket.accept();
                 ClientHandler clientHandler1 = new ClientHandler(client1);
                 ClientHandler clientHandler2 = new ClientHandler(client2);
+
                 //Player One
                 if (client1.isConnected()) {
                     clientHandler1.send(welcomeMessage);
+                    clientHandler1.send("You have joined the game session as PLAYER ONE... Waiting for player TWO");
                     System.out.println("\n Player One (" + (client1.getLocalAddress().toString()).substring(1) + ": "
                             + client1.getLocalPort() + ") has joined ... waiting for player two");
                 }
+
                 DataOutputStream outClient1 = new DataOutputStream(client1.getOutputStream());
                 BufferedReader inClient1 = new BufferedReader(new InputStreamReader(client1.getInputStream()));
+
+                
                 //Player Two
 
                 if (client2.isConnected()) {
                     clientHandler2.send(welcomeMessage);
+                    clientHandler2.send("You have joined the game session as PLAYER TWO ... Let's START THE GAME");
                     System.out.println("\n Player Two (" + (client2.getLocalAddress().toString()).substring(1) + ": "
                             + client2.getLocalPort() + ") has joined ... Let's START THE GAME");
                 }
@@ -59,15 +64,26 @@ public class Server {
                 if (inClient1.equals(inputClient2)) {
                     resClient1 = drawMessage();
                     resClient2 = drawMessage();
-                    System.out.println("It's a Draw!");
+                    clientHandler1.send("It's a DRAW");
+                    clientHandler2.send("It's a DRAW");
                 } else if (inputClient1.equals("R") && inputClient2.equals("S") ||
                         inputClient1.equals("S") && inputClient2.equals("P") ||
                         inputClient1.equals("P") && inputClient2.equals("R")) {
+                    clientHandler1.send("Player ONE: "+ inputClient1 + "\n" +
+                            "Player TWO : "+ inputClient2+"\n" + winMessage());
+                    clientHandler2.send("Player ONE: "+ inputClient1+ "\n" +
+                            "Player TWO: "+ inputClient2+"\n" +
+                            loseMessage());
                     resClient1 = winMessage();
                     resClient2 = loseMessage();
-                    System.out.println("Player One WINS!!!!!");
+                    System.out.println("PLAYER ONE WINS!!!!");
                 } else {
-                    resClient1 = loseMessage();
+                    clientHandler1.send("Player ONE: "+ inputClient1+"\n" +
+                            "Player TWO: "+ inputClient2+"\n" +
+                            loseMessage());
+                    clientHandler2.send("Player ONE: "+ inputClient1+"\n" +
+                            "Player TWO: "+inputClient2 + "\n" +
+                                    winMessage());
                     resClient2 = winMessage();
                     System.out.println("Player Two WINS!!!!!");
                 }
@@ -90,7 +106,7 @@ public class Server {
                 System.out.println("Waiting for new players ... \n");
 
             }
-        }
+
 
     }
 
