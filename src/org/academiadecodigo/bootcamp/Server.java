@@ -1,9 +1,6 @@
 package org.academiadecodigo.bootcamp;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Scanner;
@@ -16,8 +13,7 @@ public class Server {
     private static int PORT_NUMBER=6969;
     private String welcomeMessage;
     ServerSocket serverSocket;
-
-
+    Socket clientSocket;
 
     public void start() throws IOException {
 
@@ -28,22 +24,28 @@ public class Server {
             serverSocket = new ServerSocket(PORT_NUMBER);
             System.out.println("\n CONNECTION ESTABLISHED");
 
+
             String resClient1 = "";
             String resClient2 = "";
             String inputClient1, inputClient2;
 
             while (!serverSocket.isClosed()) {
                 Socket client1 = serverSocket.accept();
+                Socket client2 = serverSocket.accept();
+                ClientHandler clientHandler1 = new ClientHandler(client1);
+                ClientHandler clientHandler2 = new ClientHandler(client2);
                 //Player One
                 if (client1.isConnected()) {
+                    clientHandler1.send(welcomeMessage);
                     System.out.println("\n Player One (" + (client1.getLocalAddress().toString()).substring(1) + ": "
                             + client1.getLocalPort() + ") has joined ... waiting for player two");
                 }
                 DataOutputStream outClient1 = new DataOutputStream(client1.getOutputStream());
                 BufferedReader inClient1 = new BufferedReader(new InputStreamReader(client1.getInputStream()));
                 //Player Two
-                Socket client2 = serverSocket.accept();
+
                 if (client2.isConnected()) {
+                    clientHandler2.send(welcomeMessage);
                     System.out.println("\n Player Two (" + (client2.getLocalAddress().toString()).substring(1) + ": "
                             + client2.getLocalPort() + ") has joined ... Let's START THE GAME");
                 }
@@ -105,6 +107,34 @@ public class Server {
     public String drawMessage(){
         String message = "Draw!!!!";
         return message;
+    }
+
+    public class ClientHandler implements Runnable{
+        private BufferedReader in;
+        private PrintWriter out;
+
+        public ClientHandler(Socket socket){
+            try {
+                in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                out = new PrintWriter(socket.getOutputStream());
+            } catch (IOException e) {
+                System.err.println("ERROR: "+e.getMessage());
+            }
+        }
+
+
+        public void send(String message){
+            out.write(message);
+            out.write("\n");
+            out.flush();
+        }
+
+        @Override
+        public void run() {
+            Socket clientSocket = new Socket();
+
+
+        }
     }
 
 
